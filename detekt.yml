@@ -1,17 +1,11 @@
 build:
   maxIssues: 0
   excludeCorrectable: false
-  weights:
-    # complexity: 2
-    # LongParameterList: 1
-    # style: 1
-    # comments: 1
 
 config:
   validation: true
   warningsAsErrors: false
   checkExhaustiveness: false
-  # path: 'prop-over-default-config.yml'
 
 complexity:
   active: true
@@ -29,7 +23,6 @@ complexity:
     active: true
     functionThreshold: 10
     constructorThreshold: 10
-    ignoreDefaultParameter: true
 
 style:
   active: true
@@ -40,10 +33,9 @@ style:
     ignorePropertyDeclaration: true
     ignoreAnnotation: true
     ignoreEnums: true
-    ignoreNumericColorLiteral: true
   WildcardImport:
     active: true
-    excludeImports: ['kotlinx.android.synthetic.*', 'it.unimi.dsi.fastutil.*']
+    excludeImports: ['kotlinx.android.synthetic.*']
 
 naming:
   active: true
@@ -51,11 +43,6 @@ naming:
     active: true
     functionPattern: '[a-zA-Z][a-zA-Z0-9]*|[a-z][a-z0-9H]*|[a-z][a-zA-Z0-9]*'
     excludeClassPattern: '.*Test'
-
-formatting:
-  active: true
-  android: true
-  autoCorrect: true
 
 comments:
   active: false

@@ -6,10 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.rafadomingo.mobilechallenge.domain.model.ArtistDetails
 import com.rafadomingo.mobilechallenge.domain.repository.DiscogsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -47,12 +50,19 @@ class ArtistDetailsViewModel @Inject constructor(
         currentArtistId?.let { fetchArtistDetails(it) }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private fun fetchArtistDetails(id: Int) {
         viewModelScope.launch {
             _state.value = ArtistDetailsState.Loading
             try {
                 val details = repository.getArtistDetails(id)
                 _state.value = ArtistDetailsState.Success(details)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IOException) {
+                _state.value = ArtistDetailsState.Error("Network error: ${e.localizedMessage}")
+            } catch (e: HttpException) {
+                _state.value = ArtistDetailsState.Error("API error: ${e.code()}")
             } catch (e: Exception) {
                 _state.value = ArtistDetailsState.Error(e.localizedMessage ?: "Unknown error")
             }

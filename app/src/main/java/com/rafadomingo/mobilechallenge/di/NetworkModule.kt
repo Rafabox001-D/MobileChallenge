@@ -1,10 +1,13 @@
 package com.rafadomingo.mobilechallenge.di
 
+import android.content.Context
+import coil.ImageLoader
 import com.rafadomingo.mobilechallenge.BuildConfig
 import com.rafadomingo.mobilechallenge.data.remote.DiscogsApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -24,7 +27,10 @@ object NetworkModule {
             val request = chain.request().newBuilder()
                 // Replace with your actual Discogs token or key/secret
                 // Format: "Discogs token=YOUR_TOKEN" or "Discogs key=KEY, secret=SECRET"
-                .addHeader("Authorization", "Discogs token=${BuildConfig.DISCOGS_TOKEN}")
+                .addHeader(
+                    "Authorization",
+                    "Discogs token=${BuildConfig.DISCOGS_TOKEN}"
+                )
                 .addHeader("User-Agent", "MobileChallengeApp/1.0")
                 .build()
             chain.proceed(request)
@@ -51,5 +57,15 @@ object NetworkModule {
             .client(okHttpClient)
             .build()
             .create(DiscogsApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideImageLoader(
+        @ApplicationContext context: Context,
+        okHttpClient: OkHttpClient
+    ): ImageLoader {
+        return ImageLoader.Builder(context).okHttpClient(okHttpClient)
+            .build()
     }
 }

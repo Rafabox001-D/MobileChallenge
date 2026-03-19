@@ -14,6 +14,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val PERSIST_MAX_LIMIT = 10
+
+
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val repository: DiscogsRepository
@@ -50,7 +53,7 @@ class SearchViewModel @Inject constructor(
         // Remove if exists to move it to top
         currentList.remove(query)
         currentList.add(0, query)
-        if (currentList.size > 10) {
+        if (currentList.size > PERSIST_MAX_LIMIT) {
             currentList.removeAt(currentList.size - 1)
         }
         _previousSearches.value = currentList

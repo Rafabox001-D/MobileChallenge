@@ -5,6 +5,8 @@ import androidx.paging.PagingState
 import com.rafadomingo.mobilechallenge.data.mapper.toArtist
 import com.rafadomingo.mobilechallenge.data.remote.DiscogsApi
 import com.rafadomingo.mobilechallenge.domain.model.Artist
+import retrofit2.HttpException
+import java.io.IOException
 
 class ArtistPagingSource(
     private val api: DiscogsApi,
@@ -22,7 +24,9 @@ class ArtistPagingSource(
                 prevKey = if (position == 1) null else position - 1,
                 nextKey = if (artists.isEmpty()) null else position + 1
             )
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            LoadResult.Error(e)
+        } catch (e: HttpException) {
             LoadResult.Error(e)
         }
     }

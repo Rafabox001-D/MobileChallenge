@@ -21,7 +21,14 @@ data class Dimens(
     val iconSizeLarge: Dp = 70.dp,
     
     val cardElevation: Dp = 4.dp,
-    val shadowElevation: Dp = 6.dp
+    val shadowElevation: Dp = 6.dp,
+
+    // Search Screen Specific
+    val searchButtonCornerRadius: Dp = 20.dp,
+    val listSpacing: Dp = 12.dp,
+    val emptyStateContainerSize: Dp = 240.dp,
+    val lottieAnimationSize: Dp = 200.dp,
+    val historyBottomPadding: Dp = 32.dp
 )
 
 val LocalDimens = compositionLocalOf { Dimens() }

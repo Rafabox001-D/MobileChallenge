@@ -1,3 +1,18 @@
+import java.util.Properties
+
+// 1. Manually load local.properties
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use { load(it) }
+    }
+}
+
+// 2. Get the token from local.properties OR from a project property (for CI)
+val discogsToken = localProperties.getProperty("DISCOGS_TOKEN")
+    ?: project.findProperty("DISCOGS_TOKEN") as? String
+    ?: ""
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -24,8 +39,7 @@ android {
 
     buildTypes {
         debug {
-            val token = project.findProperty("DISCOGS_TOKEN") as? String ?: ""
-            buildConfigField("String", "DISCOGS_TOKEN", "\"$token\"")
+            buildConfigField("String", "DISCOGS_TOKEN", "\"$discogsToken\"")
         }
         release {
             isMinifyEnabled = false
@@ -33,8 +47,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            val token = project.findProperty("DISCOGS_TOKEN") as? String ?: ""
-            buildConfigField("String", "DISCOGS_TOKEN", "\"$token\"")
+            buildConfigField("String", "DISCOGS_TOKEN", "\"$discogsToken\"")
         }
     }
     compileOptions {
@@ -73,6 +86,7 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
+    implementation(libs.volley)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 

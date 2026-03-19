@@ -1,14 +1,37 @@
 package com.rafadomingo.mobilechallenge.presentation.details
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -27,6 +50,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.rafadomingo.mobilechallenge.R
 import com.rafadomingo.mobilechallenge.domain.model.ArtistDetails
+import com.rafadomingo.mobilechallenge.domain.model.ArtistMember
+import com.rafadomingo.mobilechallenge.ui.theme.Dimens
 import com.rafadomingo.mobilechallenge.ui.theme.LocalDimens
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,16 +96,7 @@ fun ArtistDetailsScreen(
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
                 is ArtistDetailsState.Error -> {
-                    Column(
-                        modifier = Modifier.align(Alignment.Center).padding(dimens.paddingLarge),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(text = s.message, color = MaterialTheme.colorScheme.error)
-                        Spacer(modifier = Modifier.height(dimens.paddingMedium))
-                        Button(onClick = { viewModel.retry() }) {
-                            Text(stringResource(R.string.retry))
-                        }
-                    }
+                    ArtistDetailsError(message = s.message, onRetry = { viewModel.retry() }, dimens = dimens)
                 }
                 is ArtistDetailsState.Success -> {
                     ArtistDetailsContent(
@@ -89,6 +105,25 @@ fun ArtistDetailsScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ArtistDetailsError(
+    message: String,
+    onRetry: () -> Unit,
+    dimens: Dimens
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(dimens.paddingLarge),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = message, color = MaterialTheme.colorScheme.error)
+        Spacer(modifier = Modifier.height(dimens.paddingMedium))
+        Button(onClick = onRetry) {
+            Text(stringResource(R.string.retry))
         }
     }
 }
@@ -108,59 +143,16 @@ fun ArtistDetailsContent(
         contentPadding = PaddingValues(dimens.paddingLarge)
     ) {
         item {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(10.dp, RoundedCornerShape(dimens.cornerRadiusLarge)),
-                shape = RoundedCornerShape(dimens.cornerRadiusLarge),
-                elevation = CardDefaults.cardElevation(defaultElevation = dimens.cornerRadiusSmall)
-            ) {
-                AsyncImage(
-                    model = details.imageUrl,
-                    contentDescription = details.name,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp),
-                    contentScale = ContentScale.Crop
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(dimens.paddingExtraLarge))
-            
-            Text(
-                text = details.name,
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onBackground
+            ArtistHeader(details = details, dimens = dimens)
+        }
+        
+        item {
+            ArtistBio(
+                name = details.name,
+                profile = cleanedProfile,
+                onViewReleasesClick = onViewReleasesClick,
+                dimens = dimens
             )
-            
-            Spacer(modifier = Modifier.height(dimens.cornerRadiusMedium))
-            
-            Text(
-                text = cleanedProfile,
-                style = MaterialTheme.typography.bodyLarge,
-                lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.2,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
-            )
-            
-            Spacer(modifier = Modifier.height(dimens.paddingExtraLarge))
-            
-            Button(
-                onClick = onViewReleasesClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .shadow(dimens.cardElevation, RoundedCornerShape(dimens.cornerRadiusExtraLarge)),
-                shape = RoundedCornerShape(dimens.cornerRadiusExtraLarge),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            ) {
-                Text(stringResource(R.string.view_discography), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            }
-            
-            Spacer(modifier = Modifier.height(dimens.paddingHuge))
         }
 
         details.members?.let { members ->
@@ -175,46 +167,118 @@ fun ArtistDetailsContent(
                     Spacer(modifier = Modifier.height(dimens.cornerRadiusMedium))
                 }
                 items(members) { member ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = dimens.paddingSmall),
-                        shape = RoundedCornerShape(dimens.cornerRadiusMedium),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
-                        )
-                    ) {
-                        ListItem(
-                            headlineContent = { 
-                                Text(member.name, fontWeight = FontWeight.SemiBold) 
-                            },
-                            supportingContent = { 
-                                Text(
-                                    if (member.isActive) stringResource(R.string.active) else stringResource(R.string.past_member),
-                                    color = if (member.isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                )
-                            },
-                            leadingContent = {
-                                Box(
-                                    modifier = Modifier
-                                        .size(dimens.iconSizeMedium)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = member.name.take(1),
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                        )
-                    }
+                    BandMemberItem(member = member, dimens = dimens)
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ArtistHeader(details: ArtistDetails, dimens: Dimens) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(10.dp, RoundedCornerShape(dimens.cornerRadiusLarge)),
+        shape = RoundedCornerShape(dimens.cornerRadiusLarge),
+        elevation = CardDefaults.cardElevation(defaultElevation = dimens.cornerRadiusSmall)
+    ) {
+        AsyncImage(
+            model = details.imageUrl,
+            contentDescription = details.name,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp),
+            contentScale = ContentScale.Crop
+        )
+    }
+}
+
+@Composable
+private fun ArtistBio(
+    name: String,
+    profile: String,
+    onViewReleasesClick: () -> Unit,
+    dimens: Dimens
+) {
+    Column {
+        Spacer(modifier = Modifier.height(dimens.paddingExtraLarge))
+        Text(
+            text = name,
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Spacer(modifier = Modifier.height(dimens.cornerRadiusMedium))
+        Text(
+            text = profile,
+            style = MaterialTheme.typography.bodyLarge,
+            lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.2,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
+        )
+        Spacer(modifier = Modifier.height(dimens.paddingExtraLarge))
+        Button(
+            onClick = onViewReleasesClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .shadow(dimens.cardElevation, RoundedCornerShape(dimens.cornerRadiusExtraLarge)),
+            shape = RoundedCornerShape(dimens.cornerRadiusExtraLarge),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
+        ) {
+            Text(
+                text = stringResource(R.string.view_discography),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Spacer(modifier = Modifier.height(dimens.paddingHuge))
+    }
+}
+
+@Composable
+private fun BandMemberItem(member: ArtistMember, dimens: Dimens) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = dimens.paddingSmall),
+        shape = RoundedCornerShape(dimens.cornerRadiusMedium),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+        )
+    ) {
+        ListItem(
+            headlineContent = { 
+                Text(member.name, fontWeight = FontWeight.SemiBold) 
+            },
+            supportingContent = { 
+                Text(
+                    if (member.isActive) stringResource(R.string.active)
+                        else stringResource(R.string.past_member),
+                    color = if (member.isActive) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+            },
+            leadingContent = {
+                Box(
+                    modifier = Modifier
+                        .size(dimens.iconSizeMedium)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = member.name.take(1),
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+        )
     }
 }
 

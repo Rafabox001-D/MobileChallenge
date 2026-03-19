@@ -5,6 +5,8 @@ import androidx.paging.PagingState
 import com.rafadomingo.mobilechallenge.data.mapper.toAlbum
 import com.rafadomingo.mobilechallenge.data.remote.DiscogsApi
 import com.rafadomingo.mobilechallenge.domain.model.Album
+import retrofit2.HttpException
+import java.io.IOException
 
 class ReleasesPagingSource(
     private val api: DiscogsApi,
@@ -26,7 +28,9 @@ class ReleasesPagingSource(
                 prevKey = if (position == 1) null else position - 1,
                 nextKey = if (albums.isEmpty()) null else position + 1
             )
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            LoadResult.Error(e)
+        } catch (e: HttpException) {
             LoadResult.Error(e)
         }
     }

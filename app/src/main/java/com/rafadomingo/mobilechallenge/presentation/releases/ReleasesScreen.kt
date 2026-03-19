@@ -1,14 +1,47 @@
 package com.rafadomingo.mobilechallenge.presentation.releases
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,12 +52,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import coil.compose.AsyncImage
 import com.rafadomingo.mobilechallenge.R
 import com.rafadomingo.mobilechallenge.domain.model.Album
+import com.rafadomingo.mobilechallenge.ui.theme.Dimens
 import com.rafadomingo.mobilechallenge.ui.theme.LocalDimens
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,18 +88,7 @@ fun ReleasesScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.artist_releases_title), style = MaterialTheme.typography.titleLarge) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground
-                )
-            )
+            ReleasesTopBar(onBackClick)
         }
     ) { padding ->
         Column(
@@ -80,58 +104,112 @@ fun ReleasesScreen(
                 onTypeChange = viewModel::setTypeFilter
             )
 
-            Box(modifier = Modifier.fillMaxSize()) {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(columns),
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(dimens.paddingLarge),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(
-                        count = releases.itemCount,
-                        key = releases.itemKey { it.id },
-                        contentType = releases.itemContentType { "album" }
-                    ) { index ->
-                        releases[index]?.let { album ->
-                            AlbumItem(album = album)
-                        }
-                    }
+            ReleasesContent(
+                releases = releases,
+                columns = columns,
+                onRetry = { releases.retry() },
+                dimens = dimens
+            )
+        }
+    }
+}
 
-                    if (releases.loadState.append is LoadState.Loading) {
-                        item {
-                            Box(
-                                modifier = Modifier.fillMaxWidth().padding(dimens.paddingLarge),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        }
-                    }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ReleasesTopBar(onBackClick: () -> Unit) {
+    TopAppBar(
+        title = {
+            Text(
+                stringResource(R.string.artist_releases_title),
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.back)
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.Transparent,
+            titleContentColor = MaterialTheme.colorScheme.onBackground
+        )
+    )
+}
+
+@Composable
+private fun ReleasesContent(
+    releases: LazyPagingItems<Album>,
+    columns: Int,
+    onRetry: () -> Unit,
+    dimens: Dimens
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(columns),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(dimens.paddingLarge),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(
+                count = releases.itemCount,
+                key = releases.itemKey { it.id },
+                contentType = releases.itemContentType { "album" }
+            ) { index ->
+                releases[index]?.let { album ->
+                    AlbumItem(album = album)
                 }
+            }
 
-                if (releases.loadState.refresh is LoadState.Loading) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-
-                if (releases.loadState.refresh is LoadState.Error) {
-                    val error = releases.loadState.refresh as LoadState.Error
-                    Column(
-                        modifier = Modifier.align(Alignment.Center).padding(dimens.paddingLarge),
-                        horizontalAlignment = Alignment.CenterHorizontally
+            if (releases.loadState.append is LoadState.Loading) {
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(dimens.paddingLarge),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = error.error.localizedMessage ?: "Error",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                        Spacer(modifier = Modifier.height(dimens.paddingMedium))
-                        Button(onClick = { releases.retry() }) {
-                            Text(stringResource(R.string.retry), style = MaterialTheme.typography.labelLarge)
-                        }
+                        CircularProgressIndicator()
                     }
                 }
             }
+        }
+
+        if (releases.loadState.refresh is LoadState.Loading) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        }
+
+        if (releases.loadState.refresh is LoadState.Error) {
+            val error = releases.loadState.refresh as LoadState.Error
+            ReleasesErrorView(
+                message = error.error.localizedMessage ?: "Error",
+                onRetry = onRetry,
+                dimens = dimens
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReleasesErrorView(
+    message: String,
+    onRetry: () -> Unit,
+    dimens: Dimens
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(dimens.paddingLarge),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.error
+        )
+        Spacer(modifier = Modifier.height(dimens.paddingMedium))
+        Button(onClick = onRetry) {
+            Text(stringResource(R.string.retry), style = MaterialTheme.typography.labelLarge)
         }
     }
 }
