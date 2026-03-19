@@ -54,30 +54,43 @@ class ArtistDetailsViewModelTest {
 
     @Test
     fun `fetchArtistDetails success updates state to Success`() = runTest {
-        every { getArtistDetailsUseCase(1) } returns flowOf(Resource.Success(mockArtistDetails))
+        every { getArtistDetailsUseCase(1) } returns flowOf(
+            Resource.Success(mockArtistDetails)
+        )
         
         viewModel = ArtistDetailsViewModel(getArtistDetailsUseCase, savedStateHandle)
         viewModel.updateArtistId(1)
 
-        assertEquals(ArtistDetailsState.Success(mockArtistDetails), viewModel.state.value)
+        assertEquals(
+            ArtistDetailsState.Success(mockArtistDetails),
+            viewModel.state.value
+        )
     }
 
     @Test
     fun `fetchArtistDetails error updates state to Error`() = runTest {
         val errorMessage = "Network Error"
-        every { getArtistDetailsUseCase(1) } returns flowOf(Resource.Error(errorMessage))
+        every { getArtistDetailsUseCase(1) } returns flowOf(
+            Resource.Error(errorMessage)
+        )
         
         viewModel = ArtistDetailsViewModel(getArtistDetailsUseCase, savedStateHandle)
         viewModel.updateArtistId(1)
 
         val currentState = viewModel.state.value
         assertTrue(currentState is ArtistDetailsState.Error)
-        assertEquals(errorMessage, (currentState as ArtistDetailsState.Error).message)
+        assertEquals(
+            errorMessage,
+            (currentState as ArtistDetailsState.Error).message
+        )
     }
 
     @Test
     fun `retry calls use case again`() = runTest {
-        every { getArtistDetailsUseCase(1) } returns flowOf(Resource.Error("First fail")) andThen flowOf(Resource.Success(mockArtistDetails))
+        every { getArtistDetailsUseCase(1) } returns flowOf(
+            Resource.Error("First fail")) andThen flowOf(
+            Resource.Success(mockArtistDetails)
+            )
         
         viewModel = ArtistDetailsViewModel(getArtistDetailsUseCase, savedStateHandle)
         viewModel.updateArtistId(1)
@@ -86,6 +99,9 @@ class ArtistDetailsViewModelTest {
         
         viewModel.retry()
         
-        assertEquals(ArtistDetailsState.Success(mockArtistDetails), viewModel.state.value)
+        assertEquals(
+            ArtistDetailsState.Success(mockArtistDetails),
+            viewModel.state.value
+        )
     }
 }
