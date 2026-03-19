@@ -7,5 +7,6 @@ data class Album(
     val label: String?,
     val format: String?,
     val thumb: String?,
-    val type: String
+    val type: String,
+    val role: String? = null
 )

@@ -55,7 +55,6 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
-import androidx.paging.compose.itemKey
 import coil.compose.AsyncImage
 import com.rafadomingo.mobilechallenge.R
 import com.rafadomingo.mobilechallenge.domain.model.Album
@@ -156,8 +155,17 @@ private fun ReleasesContent(
         ) {
             items(
                 count = releases.itemCount,
-                // Using composite key (id + type) to prevent duplicate key crashes
-                key = releases.itemKey { "${it.type}_${it.id}" },
+                // Using composite key with index to guarantee uniqueness.
+                // In some cases, Discogs API returns the same release multiple times
+                // (e.g., if the artist has multiple roles on the same release).
+                key = { index ->
+                    val item = releases.peek(index)
+                    if (item == null) {
+                        "placeholder_$index"
+                    } else {
+                        "${item.type}_${item.id}_${item.role ?: ""}_$index"
+                    }
+                },
                 contentType = releases.itemContentType { "album" }
             ) { index ->
                 releases[index]?.let { album ->

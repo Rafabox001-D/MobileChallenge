@@ -42,6 +42,7 @@ fun ArtistReleaseDto.toAlbum(): Album {
         label = label,
         format = format,
         thumb = thumb,
-        type = type
+        type = type,
+        role = role
     )
 }
