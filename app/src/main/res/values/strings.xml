@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">MobileChallenge</string>
+    <string name="search_artists_placeholder">Search artists...</string>
+    <string name="search_button">Search</string>
+    <string name="clear_search">Clear</string>
+    <string name="discover_artists">Discover your next\nfavorite artist</string>
+    <string name="error_loading_more">Error loading more</string>
+    <string name="retry">Retry</string>
+    <string name="artist_details_title">Artist Details</string>
+    <string name="back">Back</string>
+    <string name="view_discography">View Discography</string>
+    <string name="band_members">Band Members</string>
+    <string name="active">Active</string>
+    <string name="past_member">Past Member</string>
+    <string name="artist_releases_title">Artist Releases</string>
+    <string name="releases_filter">Releases</string>
+    <string name="masters_filter">Masters</string>
+    <string name="various_labels">Various Labels</string>
+    <string name="select_artist_empty_state">Select an artist to see details</string>
+    <string name="no_year_placeholder">---</string>
+    <string name="filter_by_year">Year</string>
+    <string name="all_years">All Years</string>
+</resources>
