@@ -39,9 +39,10 @@ A modern Android application built with Jetpack Compose that allows users to sea
 1. Clone the repository.
 2. Open in Android Studio (Ladybug or newer recommended).
 3. Ensure you have a valid Java Runtime (JDK 17+).
-4. Run `./gradlew recordPaparazziDebug` to generate baseline screenshots.
-5. Run `./gradlew detekt` to check code quality.
-6. Build and run the `:app` module.
+4. Add your Discogs Token in your local.properties file 'DISCOGS_TOKEN=YourTokenHere' 
+5. Run `./gradlew recordPaparazziDebug` to generate baseline screenshots. 
+6. Run `./gradlew detekt` to check code quality. 
+7. Build and run the `:app` module.
 
 ## 🛡️ Error Handling
 The app gracefully handles:

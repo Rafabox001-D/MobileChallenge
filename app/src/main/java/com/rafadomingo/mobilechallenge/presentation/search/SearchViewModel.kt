@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.rafadomingo.mobilechallenge.domain.model.Artist
-import com.rafadomingo.mobilechallenge.domain.repository.DiscogsRepository
+import com.rafadomingo.mobilechallenge.domain.usecase.SearchArtistsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,10 +16,9 @@ import javax.inject.Inject
 
 private const val PERSIST_MAX_LIMIT = 10
 
-
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val repository: DiscogsRepository
+    private val searchArtistsUseCase: SearchArtistsUseCase
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
@@ -39,7 +38,7 @@ class SearchViewModel @Inject constructor(
         if (_searchQuery.value.isBlank()) return
         
         viewModelScope.launch {
-            repository.searchArtists(_searchQuery.value)
+            searchArtistsUseCase(_searchQuery.value)
                 .cachedIn(viewModelScope)
                 .collectLatest {
                     _artists.value = it

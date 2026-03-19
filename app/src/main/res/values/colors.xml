@@ -2,4 +2,6 @@
 <resources>
     <color name="primary_15">#3DFF9800</color>
     <color name="primary">#FFFF9800</color>
+    <color name="background">#F3E5F5</color>
+    <color name="on_background">#673AB7</color>
 </resources>

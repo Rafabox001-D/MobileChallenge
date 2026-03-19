@@ -156,7 +156,8 @@ private fun ReleasesContent(
         ) {
             items(
                 count = releases.itemCount,
-                key = releases.itemKey { it.id },
+                // Using composite key (id + type) to prevent duplicate key crashes
+                key = releases.itemKey { "${it.type}_${it.id}" },
                 contentType = releases.itemContentType { "album" }
             ) { index ->
                 releases[index]?.let { album ->
