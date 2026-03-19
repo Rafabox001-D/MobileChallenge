@@ -1,9 +1,10 @@
 package com.rafadomingo.mobilechallenge.presentation.search
 
 import androidx.paging.PagingData
-import com.rafadomingo.mobilechallenge.domain.repository.DiscogsRepository
-import io.mockk.coEvery
+import com.rafadomingo.mobilechallenge.domain.usecase.SearchArtistsUseCase
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -19,13 +20,13 @@ import org.junit.Test
 class SearchViewModelTest {
 
     private lateinit var viewModel: SearchViewModel
-    private val repository: DiscogsRepository = mockk()
+    private val searchArtistsUseCase: SearchArtistsUseCase = mockk()
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = SearchViewModel(repository)
+        viewModel = SearchViewModel(searchArtistsUseCase)
     }
 
     @After
@@ -41,13 +42,13 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `searchArtists calls repository when query is not blank`() {
+    fun `searchArtists calls use case when query is not blank`() {
         val query = "Nirvana"
         viewModel.onSearchQueryChange(query)
-        coEvery { repository.searchArtists(query) } returns flowOf(PagingData.empty())
+        every { searchArtistsUseCase(query) } returns flowOf(PagingData.empty())
 
         viewModel.searchArtists()
 
-        io.mockk.verify { repository.searchArtists(query) }
+        verify { searchArtistsUseCase(query) }
     }
 }

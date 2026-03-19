@@ -2,11 +2,13 @@ package com.rafadomingo.mobilechallenge.presentation.details
 
 import androidx.lifecycle.SavedStateHandle
 import com.rafadomingo.mobilechallenge.domain.model.ArtistDetails
-import com.rafadomingo.mobilechallenge.domain.repository.DiscogsRepository
-import io.mockk.coEvery
+import com.rafadomingo.mobilechallenge.domain.usecase.GetArtistDetailsUseCase
+import com.rafadomingo.mobilechallenge.domain.util.Resource
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -21,7 +23,7 @@ import org.junit.Test
 class ArtistDetailsViewModelTest {
 
     private lateinit var viewModel: ArtistDetailsViewModel
-    private val repository: DiscogsRepository = mockk()
+    private val getArtistDetailsUseCase: GetArtistDetailsUseCase = mockk()
     private val savedStateHandle: SavedStateHandle = SavedStateHandle()
     private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -46,15 +48,15 @@ class ArtistDetailsViewModelTest {
 
     @Test
     fun `initial state is Loading when no artistId in savedStateHandle`() {
-        viewModel = ArtistDetailsViewModel(repository, savedStateHandle)
+        viewModel = ArtistDetailsViewModel(getArtistDetailsUseCase, savedStateHandle)
         assertTrue(viewModel.state.value is ArtistDetailsState.Loading)
     }
 
     @Test
     fun `fetchArtistDetails success updates state to Success`() = runTest {
-        coEvery { repository.getArtistDetails(1) } returns mockArtistDetails
+        every { getArtistDetailsUseCase(1) } returns flowOf(Resource.Success(mockArtistDetails))
         
-        viewModel = ArtistDetailsViewModel(repository, savedStateHandle)
+        viewModel = ArtistDetailsViewModel(getArtistDetailsUseCase, savedStateHandle)
         viewModel.updateArtistId(1)
 
         assertEquals(ArtistDetailsState.Success(mockArtistDetails), viewModel.state.value)
@@ -63,9 +65,9 @@ class ArtistDetailsViewModelTest {
     @Test
     fun `fetchArtistDetails error updates state to Error`() = runTest {
         val errorMessage = "Network Error"
-        coEvery { repository.getArtistDetails(1) } throws Exception(errorMessage)
+        every { getArtistDetailsUseCase(1) } returns flowOf(Resource.Error(errorMessage))
         
-        viewModel = ArtistDetailsViewModel(repository, savedStateHandle)
+        viewModel = ArtistDetailsViewModel(getArtistDetailsUseCase, savedStateHandle)
         viewModel.updateArtistId(1)
 
         val currentState = viewModel.state.value
@@ -74,10 +76,10 @@ class ArtistDetailsViewModelTest {
     }
 
     @Test
-    fun `retry calls repository again`() = runTest {
-        coEvery { repository.getArtistDetails(1) } throws Exception("First fail") andThen mockArtistDetails
+    fun `retry calls use case again`() = runTest {
+        every { getArtistDetailsUseCase(1) } returns flowOf(Resource.Error("First fail")) andThen flowOf(Resource.Success(mockArtistDetails))
         
-        viewModel = ArtistDetailsViewModel(repository, savedStateHandle)
+        viewModel = ArtistDetailsViewModel(getArtistDetailsUseCase, savedStateHandle)
         viewModel.updateArtistId(1)
         
         assertTrue(viewModel.state.value is ArtistDetailsState.Error)
